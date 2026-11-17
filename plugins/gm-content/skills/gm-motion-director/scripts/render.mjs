@@ -49,13 +49,13 @@ const MB = Math.max(1, Number(opt('mblur', 1))), SH = Number(opt('shutter', 0.5)
 const JPG = MB > 1 || args.includes('--jpeg');   // PNG 1080x1920 ±1,1 s/frame di Chrome Windows; JPEG q96 ±0,13 s (pakai --jpeg)
 const vf = MB > 1 ? ['-vf', `tmix=frames=${MB},select='eq(mod(n\\,${MB})\\,${MB - 1})',setpts=PTS-STARTPTS,scale=in_range=full:out_range=tv,format=yuv420p`, '-r', String(fps)]  : JPG ? ['-vf', 'scale=in_range=full:out_range=tv,format=yuv420p'] : [];
 const ff = spawn('ffmpeg', ['-y', '-v', 'error', '-f', 'image2pipe', '-framerate', String(fps * MB), '-i', '-', ...vf,
-  '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p', '-color_range', 'tv', '-movflags', '+faststart', silent], { stdio: ['pipe', 'inherit', 'inherit'] });
+  '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '16', '-pix_fmt', 'yuv420p', '-color_range', 'tv', '-movflags', '+faststart', silent], { stdio: ['pipe', 'inherit', 'inherit'] });
 const started = Date.now();
 for (let i = 0; i < total; i++) {
   for (let k = 0; k < MB; k++) {
     const t = t0 + i / fps + (MB > 1 ? (k / MB) * SH / fps : 0);
     await page.evaluate(tt => window.__GMM.seek(tt), t);
-    const buf = await page.screenshot({ type: JPG ? 'jpeg' : 'png', quality: JPG ? 96 : undefined });
+    let buf; for (let tr = 0; ; tr++) { try { buf = await page.screenshot({ type: JPG ? 'jpeg' : 'png', quality: JPG ? 96 : undefined, timeout: 120000 }); break; } catch (e) { if (tr >= 2) throw e; process.stdout.write('\n  [coba ulang frame ' + i + ': ' + String(e.message).split('\n')[0] + ']\n'); } }  // mesin kelebihan beban: timeout 120 dtk + 2 percobaan ulang
     if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));
   }
   if (i % fps === 0) process.stdout.write(`\r  frame ${i}/${total}${MB > 1 ? ' x' + MB + ' mblur' : ''}  (${((Date.now() - started) / 1000).toFixed(0)}s)`);
