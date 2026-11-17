@@ -1,0 +1,16 @@
+{
+  "name": "go-markets-content",
+  "owner": {
+    "name": "Hendra"
+  },
+  "metadata": {
+    "description": "Skill konten GO Markets (versi tersaring)."
+  },
+  "plugins": [
+    {
+      "name": "gm-content",
+      "source": "./plugins/gm-content",
+      "description": "Skill konten GO Markets: desk, kreator konten, studio gen-AI (tersaring)."
+    }
+  ]
+}
