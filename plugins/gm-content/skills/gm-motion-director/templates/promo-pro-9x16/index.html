@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Nama Produk — promo PRO 9:16</title>
+<!--
+  TEMPLATE PRO 9:16 — GM Motion Director R2
+  Teknik: satu kamera kontinu (lantai chart 3D berdiri jadi kartu kaca), parallax + depth of field,
+  mask-reveal tipografi, glow zona, specular sweep, film grain deterministik, vignette, motion blur (render --mblur 4).
+  Brand: PLACEHOLDER netral — ganti palet/font sesuai brand kit resmi GO Markets.
+  Render: node ../../scripts/render.mjs index.html out/pro.mp4 --mblur 4
+-->
+<style>
+  :root { --ink:#0b1220; --ink2:#3b475c; --rim:#b8dfff; --sap1:#003797; --sap2:#065be9; --sap3:#003988; --cyan:#51d6ff; --up:#13a24f; --down:#d6453b; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { width:1080px; height:1920px; overflow:hidden; background:#eef4ff; }
+  body { font-family:system-ui,'Segoe UI',Roboto,sans-serif; color:var(--ink); -webkit-font-smoothing:antialiased; }
+  .layer { position:absolute; inset:0; }
+  .abs { position:absolute; }
+  #stage { perspective:1700px; perspective-origin:50% 42%; }
+  .p3d { transform-style:preserve-3d; }
+
+  /* latar studio: pearl + dua sumber cahaya lembut + lantai pantul */
+  #bg { background: radial-gradient(1200px 900px at 78% 8%, #ffffff 0%, rgba(255,255,255,0) 60%),
+                    linear-gradient(170deg, #f8fbff 0%, #e4eeff 48%, #c9ddff 100%); }
+  .blob { position:absolute; border-radius:50%; filter:blur(90px); }
+  #b1 { width:900px; height:900px; left:-300px; top:980px; background:rgba(81,214,255,.42); }
+  #b2 { width:800px; height:800px; left:520px; top:-260px; background:rgba(6,91,233,.22); }
+  #b3 { width:700px; height:700px; left:300px; top:1500px; background:rgba(184,223,255,.9); }
+
+  /* tipografi: mask reveal per baris */
+  .head { position:absolute; left:72px; right:150px; top:210px; font-weight:800; letter-spacing:-0.04em; line-height:1.0; }
+  .head .ln { display:block; overflow:hidden; padding-bottom:12px; }
+  .head .in { display:inline-block; }
+  .h-xl { font-size:112px; }
+  .grad { background:linear-gradient(100deg,var(--sap1) 0%,var(--sap2) 55%,#2fb8ff 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .eyebrow { font-family:ui-monospace,Consolas,monospace; font-size:28px; letter-spacing:.06em; color:var(--sap2); }
+
+  /* lantai chart (adegan A) → kartu kaca (adegan B) */
+  #plane { position:absolute; left:80px; top:640px; width:920px; height:1040px; border-radius:46px; transform-origin:50% 60%;
+           background:linear-gradient(160deg,rgba(255,255,255,.96) 0%,rgba(241,247,255,.92) 55%,rgba(222,236,255,.9) 100%);
+           border:2px solid var(--rim); box-shadow:0 60px 120px -40px rgba(0,55,151,.45), 0 0 0 1px rgba(255,255,255,.7) inset; overflow:hidden; }
+  #plane .hdr { position:absolute; left:44px; top:34px; right:44px; display:flex; justify-content:space-between; font-family:ui-monospace,Consolas,monospace; font-size:26px; color:var(--ink2); }
+  #plane svg { position:absolute; left:20px; top:100px; }
+  #spec { position:absolute; inset:-40%; background:linear-gradient(115deg,rgba(255,255,255,0) 40%,rgba(255,255,255,.75) 50%,rgba(255,255,255,0) 60%); }
+  #ptag { position:absolute; right:22px; padding:8px 14px; border-radius:12px; background:var(--sap2); color:#fff; font-family:ui-monospace,Consolas,monospace; font-size:24px; box-shadow:0 8px 24px -6px rgba(6,91,233,.7); }
+
+  .pill { position:absolute; padding:16px 26px; border-radius:999px; font-weight:700; font-size:34px; color:var(--sap1);
+          background:linear-gradient(180deg,#fff,#e8f2ff); border:2px solid var(--rim); box-shadow:0 20px 40px -18px rgba(0,55,151,.55); }
+
+  /* adegan C: kartu multi-timeframe */
+  .tf { position:absolute; left:150px; top:700px; width:780px; height:620px; border-radius:40px;
+        background:linear-gradient(160deg,rgba(255,255,255,.95),rgba(232,242,255,.88)); border:2px solid var(--rim);
+        box-shadow:0 50px 90px -40px rgba(0,55,151,.5); overflow:hidden; }
+  .tf .lbl { position:absolute; left:34px; top:26px; font-family:ui-monospace,Consolas,monospace; font-size:30px; color:var(--sap2); }
+  .tf svg { position:absolute; left:10px; top:80px; }
+
+  /* adegan D: slab sapphire */
+  #slab { position:absolute; inset:0; transform-origin:50% 100%;
+          background:radial-gradient(900px 700px at 80% 0%, rgba(81,214,255,.45), rgba(81,214,255,0) 60%),
+                     linear-gradient(155deg,var(--sap1) 0%,var(--sap2) 52%,var(--sap3) 100%); }
+  #slab .rim { position:absolute; inset:28px; border-radius:64px; border:2px solid rgba(81,214,255,.55); }
+  #streak { position:absolute; left:-400px; top:640px; width:500px; height:8px; border-radius:8px; background:linear-gradient(90deg,rgba(81,214,255,0),#fff,rgba(81,214,255,0)); filter:blur(2px); }
+  .word { font-size:168px; font-weight:800; letter-spacing:-0.05em; color:#fff; line-height:1; }
+  .cta { position:absolute; left:72px; top:1170px; height:124px; padding:0 58px; border-radius:62px; display:flex; align-items:center; overflow:hidden;
+         font-size:46px; font-weight:750; color:var(--sap1); background:linear-gradient(180deg,#fff,#e2efff); box-shadow:0 0 0 3px var(--cyan), 0 30px 60px -24px rgba(0,0,0,.5); }
+  #ctaShine { position:absolute; top:-20px; bottom:-20px; width:90px; left:-140px; background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.95),rgba(255,255,255,0)); transform:skewX(-20deg); }
+  .disc { position:absolute; left:72px; right:150px; top:1352px; font-size:28px; line-height:1.4; color:rgba(255,255,255,.85); }
+
+  /* finishing */
+  #vig { background:radial-gradient(120% 90% at 50% 45%, rgba(0,0,0,0) 55%, rgba(4,20,60,.28) 100%); pointer-events:none; }
+  #grain { width:1080px; height:1920px; mix-blend-mode:overlay; opacity:.13; image-rendering:auto; }
+</style>
+</head>
+<body>
+<div id="bg" class="layer"><div class="blob" id="b1"></div><div class="blob" id="b2"></div><div class="blob" id="b3"></div></div>
+
+<div id="stage" class="layer p3d">
+  <div id="world" class="layer p3d">
+
+    <!-- A+B: satu bidang yang sama -->
+    <div id="plane" class="p3d">
+      <div class="hdr"><span>XAUUSD · H1</span><span id="clk">ilustrasi</span></div>
+      <svg id="chart" width="880" height="900" viewBox="0 0 880 900">
+        <defs>
+          <filter id="glow" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="10" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <linearGradient id="gS" x1="0" x2="1"><stop offset="0" stop-color="#d6453b" stop-opacity=".30"/><stop offset="1" stop-color="#d6453b" stop-opacity=".06"/></linearGradient>
+          <linearGradient id="gD" x1="0" x2="1"><stop offset="0" stop-color="#065be9" stop-opacity=".30"/><stop offset="1" stop-color="#065be9" stop-opacity=".06"/></linearGradient>
+        </defs>
+        <g id="chaos"></g><g id="zones"></g><g id="cdl"></g>
+      </svg>
+      <div id="ptag">2,384.20</div>
+      <div id="spec"></div>
+    </div>
+
+    <!-- pil melayang (depan kamera, depth of field) -->
+    <div class="pill" id="p1" style="left:640px; top:560px">BOS</div>
+    <div class="pill" id="p2" style="left:160px; top:1580px">CHoCH</div>
+    <div class="pill" id="p3" style="left:700px; top:1560px">Order Block</div>
+
+    <!-- C: tiga timeframe -->
+    <div id="tfs" class="layer p3d">
+      <div class="tf" id="tf3"><div class="lbl">H4</div><svg width="760" height="520"></svg></div>
+      <div class="tf" id="tf2"><div class="lbl">H1</div><svg width="760" height="520"></svg></div>
+      <div class="tf" id="tf1"><div class="lbl">M15</div><svg width="760" height="520"></svg></div>
+    </div>
+  </div>
+</div>
+
+<!-- tipografi (di luar kamera agar selalu tajam) -->
+<div class="head h-xl" id="hA"><span class="ln"><span class="in">Terlalu banyak</span></span><span class="ln"><span class="in">garis.</span></span><span class="ln"><span class="in grad">Terlalu sedikit</span></span><span class="ln"><span class="in grad">kepastian.</span></span></div>
+<div class="head h-xl" id="hB"><span class="ln"><span class="in">Zona penting,</span></span><span class="ln"><span class="in grad">ditandai</span></span><span class="ln"><span class="in grad">otomatis.</span></span></div>
+<div class="head h-xl" id="hC"><span class="ln"><span class="in">Satu zona.</span></span><span class="ln"><span class="in grad">Tiga timeframe</span></span><span class="ln"><span class="in grad">sepakat.</span></span></div>
+
+<!-- D -->
+<div id="end" class="layer" style="perspective:1600px">
+  <div id="slab"><div class="rim"></div><div id="streak"></div>
+    <div class="abs eyebrow" id="eb" style="left:72px; top:620px; color:var(--cyan)">BRAND · KATEGORI</div>
+    <div class="abs" style="left:64px; top:680px; overflow:hidden; padding-bottom:16px"><div class="word" id="word">Nama Produk</div></div>
+    <div class="abs" id="sub" style="left:72px; top:880px; font-size:52px; font-weight:600; color:#dbe9ff">Indikator untuk TradingView</div>
+    <div class="abs" id="sub2" style="left:72px; top:950px; font-family:ui-monospace,Consolas,monospace; font-size:30px; color:rgba(219,233,255,.8)">Fitur utama · Fitur kedua · Fitur ketiga</div>
+    <div class="cta" id="cta">Coba di TradingView<div id="ctaShine"></div></div>
+    <svg id="sig" class="abs" style="left:0; top:1420px" width="1080" height="420" viewBox="0 0 1080 420"><defs><filter id="g2"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="fadeL" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#51d6ff" stop-opacity=".35"/><stop offset="1" stop-color="#51d6ff" stop-opacity="0"/></linearGradient></defs><path id="sigArea" fill="url(#fadeL)"/><path id="sigLine" fill="none" stroke="#8fe6ff" stroke-width="5" filter="url(#g2)"/></svg>
+    <div class="disc" id="disc">Ilustrasi produk. Bukan saran keuangan.<br>Trading mengandung risiko tinggi.</div>
+  </div>
+</div>
+
+<div id="vig" class="layer"></div>
+<canvas id="grain" class="layer" width="540" height="960"></canvas>
+
+<script src="../../runtime/gmmotion.js"></script>
+<script>
+const M = GMMotion, $ = s => document.querySelector(s);
+const tl = M.create({ width:1080, height:1920, fps:30, duration:15 });
+
+/* ---------- DATA chart (ber-seed; ganti dengan OHLC nyata bila ada) ---------- */
+function series(seed, n, amp) {
+  const R = M.rng(seed); let p = 100, out = [];
+  for (let i = 0; i < n; i++) {
+    const tgt = 100 + amp * (Math.sin(i / 7.5) * 1.0 + Math.sin(i / 3.1) * .35);
+    const o = p, c = o + (tgt - o) * .55 + (R() - .5) * amp * .45;
+    out.push({ o, c, hi: Math.max(o, c) + R() * amp * .3, lo: Math.min(o, c) - R() * amp * .3 }); p = c;
+  }
+  return out;
+}
+function draw(svg, data, W, H, opt = {}) {
+  const mx = Math.max(...data.map(k => k.hi)), mn = Math.min(...data.map(k => k.lo));
+  const Y = v => 30 + (mx - v) / (mx - mn) * (H - 60), cw = W / data.length;
+  const iH = data.findIndex(k => k.hi === mx), iL = data.findIndex(k => k.lo === mn), band = (mx - mn) * .09;
+  const z = (i, a, b, fill, stroke, label, id) => `<g id="${id}" class="zone"><rect x="${i * cw}" y="${Y(a)}" width="${W - i * cw}" height="${Y(b) - Y(a)}" fill="url(#${fill})" stroke="${stroke}" stroke-width="2.5" rx="8" filter="url(#glow)"/>
+     <text x="${W - 14}" y="${Y(a) - 14}" text-anchor="end" font-family="monospace" font-size="${opt.fs || 24}" fill="${stroke}">${label}</text></g>`;
+  const zones = z(iH, mx, mx - band, 'gS', '#d6453b', opt.sl || 'SUPPLY · H4', (opt.id || '') + 'zS') + z(iL, mn + band, mn, 'gD', '#065be9', opt.dl || 'DEMAND · H1', (opt.id || '') + 'zD');
+  const cdl = data.map((k, i) => { const up = k.c >= k.o, col = up ? '#13a24f' : '#d6453b', x = i * cw + cw / 2;
+    return `<g class="c"><line x1="${x}" x2="${x}" y1="${Y(k.hi)}" y2="${Y(k.lo)}" stroke="${col}" stroke-width="${Math.max(1.5, cw * .12)}"/><rect x="${x - cw * .32}" y="${Y(Math.max(k.o, k.c))}" width="${cw * .64}" height="${Math.max(3, Math.abs(Y(k.o) - Y(k.c)))}" fill="${col}" rx="2"/></g>`; }).join('');
+  return { zones, cdl, Y, cw, mx, mn };
+}
+// chart utama
+const D = series(42, 54, 6), C = draw($('#chart'), D, 840, 880);
+$('#zones').innerHTML = C.zones; $('#cdl').innerHTML = C.cdl;
+// kekacauan: MA, trendline, fibo — "penuh garis"
+(function () {
+  const R = M.rng(9), cols = ['#ff7a00', '#a855f7', '#e11d48', '#0ea5e9', '#16a34a', '#eab308', '#64748b'];
+  let h = '';
+  [5, 9, 14, 21].forEach((per, j) => { let pts = [];
+    D.forEach((k, i) => { const s = D.slice(Math.max(0, i - per), i + 1); const a = s.reduce((q, w) => q + w.c, 0) / s.length; pts.push(`${i * C.cw + C.cw / 2},${C.Y(a)}`); });
+    h += `<polyline class="ch" points="${pts.join(' ')}" fill="none" stroke="${cols[j]}" stroke-width="4" opacity=".8"/>`; });
+  for (let i = 0; i < 9; i++) h += `<line class="ch" x1="${R() * 300}" y1="${100 + R() * 700}" x2="${500 + R() * 340}" y2="${100 + R() * 700}" stroke="${cols[(i + 4) % 7]}" stroke-width="3" stroke-dasharray="${i % 2 ? '10 8' : '0'}" opacity=".75"/>`;
+  [.236, .382, .5, .618, .786].forEach((f, i) => { const y = 60 + f * 760; h += `<line class="ch" x1="0" x2="840" y1="${y}" y2="${y}" stroke="${cols[i]}" stroke-width="2" opacity=".6"/>`; });
+  $('#chaos').innerHTML = h;
+})();
+// mini chart timeframe
+[['#tf3', 7, 'SUPPLY', 'DEMAND · H4'], ['#tf2', 11, 'SUPPLY', 'DEMAND · H1'], ['#tf1', 19, 'SUPPLY', 'DEMAND · M15']].forEach(([id, seed, sl, dl], j) => {
+  const svg = $(id + ' svg'); const d = series(seed, 34 + j * 6, 5);
+  const r = draw(svg, d, 740, 500, { fs: 22, sl, dl, id: 'tf' + j });
+  svg.innerHTML = $('#chart defs').outerHTML + r.zones + r.cdl;
+});
+
+/* ---------- helpers ---------- */
+const lines = sel => document.querySelectorAll(sel + ' .in');
+function revealHead(sel, start, gap) { tl.stagger(sel + ' .in', { y: [150, 0], rotate: [3, 0] }, start, 0.5, gap || 0.09, 'softLand'); }
+function exitHead(sel, at) { tl.stagger(sel + ' .in', { y: [0, -150] }, at, 0.22, 0.03, 'exitIn'); }
+const cand = document.querySelectorAll('#cdl .c'), chaos = document.querySelectorAll('#chaos .ch');
+
+/* ---------- GLOBAL: latar & finishing selalu hidup ---------- */
+tl.to('#b1', { x: [0, 260], y: [0, -180] }, 0, 13.6, 'drift')
+  .to('#b2', { x: [0, -200], y: [0, 160] }, 0, 13.6, 'drift')
+  .to('#b3', { x: [0, -260] }, 0, 13.6, 'drift')
+  .call((p, t) => M.grain($('#grain'), Math.min(t, 13.6), 30, 255), 0, 15);   // grain membeku di end hold
+
+/* ---------- A: KEKACAUAN (0–3.0) — lantai chart 3D, kamera terbang ---------- */
+tl.scene('#hA', 0, 3.0)
+  .to('#plane', { rx: [64, 64], y: [520, 300], z: [-200, 40], scale: [1.55, 1.55], rotate: [-8, -3] }, 0, 2.55, 'drift')
+  .call(p => chaos.forEach((el, i) => el.style.opacity = M.clamp(p * chaos.length - i) * .8), 0.1, 1.5, 'softLand')
+  .call(p => cand.forEach((g, i) => g.style.opacity = M.clamp(p * cand.length - i)), 0, 0.9, 'expoOut')
+;
+revealHead('#hA', 0.05, 0.1);
+tl.cue(0.05, 'hit', .8).cue(0.4, 'tick', .5).cue(0.6, 'tick', .5);
+
+/* A→B: SATU KAMERA — lantai berdiri jadi kartu, garis kacau tersapu cahaya */
+tl.to('#plane', { rx: [64, 0], y: [300, 0], z: [40, 0], scale: [1.55, 1], rotate: [-3, 0] }, 2.55, 0.85, 'inOut')
+  .call(p => chaos.forEach((el, i) => el.style.opacity = M.clamp(1 - (p * 1.8 - i * .04)) * .8), 2.35, 0.6, 'linear')
+  .to('#spec', { x: [-900, 900] }, 2.5, 0.7, 'inOut')
+  .cue(2.5, 'whoosh').cue(3.35, 'hit', .9);
+exitHead('#hA', 2.62);
+
+/* ---------- B: KEJELASAN (3.0–7.6) ---------- */
+tl.scene('#hB', 3.0, 7.6);
+revealHead('#hB', 3.05, 0.09);
+tl.call(zoneGrow('zS'), 3.55, 0.55, 'softLand').call(zoneGrow('zD'), 3.95, 0.55, 'softLand')
+  .to('#plane', { ry: [-9, 9], rx: [0, 4] }, 3.4, 4.2, 'inOut')
+  .to('#spec', { x: [-900, 900] }, 4.6, 0.9, 'inOut')
+  .cue(3.55, 'pop', .9).cue(3.95, 'pop', .9)
+  .call((p, t) => { const v = 2384.2 + Math.sin(t * 3.1) * 1.6 + (t - 3) * 0.9; $('#ptag').textContent = v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    $('#ptag').style.top = (100 + C.Y(D[D.length - 1].c) - 22 + Math.sin(t * 3.1) * 6) + 'px'; }, 0, 15)
+  // pil depan kamera: DOF (blur) + parallax
+  .stagger('.pill', { opacity: [0, 1], z: [500, 260], blur: [16, 3] }, 4.3, 0.55, 0.12, 'softLand')
+  .to('#p1', { y: [0, -120], x: [0, -30] }, 4.3, 3.3, 'drift').to('#p2', { y: [0, -90] }, 4.3, 3.3, 'drift').to('#p3', { y: [0, -150] }, 4.3, 3.3, 'drift')
+  .stagger('.pill', { opacity: [1, 0], z: [260, 700] }, 7.25, 0.3, 0.03, 'exitIn')
+  .cue(4.3, 'tick').cue(4.42, 'tick').cue(4.54, 'tick');
+exitHead('#hB', 7.25);
+// B→C: kartu mundur & berbelok jadi tumpukan timeframe
+tl.to('#plane', { z: [0, -900], ry: [9, -40], opacity: [1, 0], x: [0, -200] }, 7.2, 0.5, 'exitIn').cue(7.2, 'whoosh');
+
+/* ---------- C: MULTI-TIMEFRAME (7.6–11.4) ---------- */
+tl.scene('#tfs', 7.45, 11.5).scene('#hC', 7.6, 11.4);
+revealHead('#hC', 7.65, 0.09);
+[['#tf3', -560, -160, 0], ['#tf2', -280, 100, 1], ['#tf1', 0, 360, 2]].forEach(([id, z, y, j]) => {
+  tl.to(id, { z: [z - 900, z], y: [y + 400, y], ry: [-38, -26], rx: [14, 10], x: [-160 + j * 60, -110 + j * 60], opacity: [0, 1] }, 7.45 + j * 0.14, 0.7, 'softLand')
+    .to(id, { ry: [-26, -16], x: [-110 + j * 60, -70 + j * 90] }, 8.2, 3.0, 'drift')
+    .call(zoneGrow('tf' + j + 'zD'), 8.3 + j * 0.25, 0.5, 'softLand')
+    .call(zoneGrow('tf' + j + 'zS'), 8.5 + j * 0.25, 0.5, 'softLand')
+    .cue(7.45 + j * 0.14, 'pop', .7);
+});
+tl.to('#world', { scale: [1.08, 1], y: [40, -20] }, 7.45, 4, 'drift');
+exitHead('#hC', 11.05);
+tl.to('#tfs', { y: [0, -600], opacity: [1, 0] }, 11.1, 0.35, 'exitIn').cue(10.9, 'riser', .8);
+
+/* ---------- D: END CARD (11.3–15) ---------- */
+tl.scene('#end', 11.3, 15.01)
+  .to('#slab', { rx: [-75, 0], y: [300, 0] }, 11.3, 0.6, 'softLand')
+  .to('#streak', { x: [0, 1800] }, 11.75, 0.6, 'inOut')
+  .to('#word', { y: [200, 0] }, 11.75, 0.55, 'softLand')
+  .to('#eb', { opacity: [0, 1], x: [-30, 0] }, 11.95, 0.4, 'softLand')
+  .to('#sub', { opacity: [0, 1], y: [40, 0] }, 12.05, 0.45, 'softLand')
+  .to('#sub2', { opacity: [0, 1], y: [30, 0] }, 12.2, 0.45, 'softLand')
+  .to('#cta', { opacity: [0, 1], scale: [1.3, 1], blur: [10, 0] }, 12.4, 0.5, 'snapSettle')
+  .to('#ctaShine', { x: [0, 760] }, 12.95, 0.55, 'inOut')
+  .to('#disc', { opacity: [0, 1] }, 12.6, 0.4, 'softLand')
+  .cue(11.3, 'sub').cue(11.75, 'whoosh', .6).cue(11.8, 'chime', .9).cue(12.4, 'pop');
+
+// garis sinyal end card: digambar kiri→kanan
+(function () { const d = series(77, 60, 6), mx = Math.max(...d.map(k => k.c)), mn = Math.min(...d.map(k => k.c));
+  const pts = d.map((k, i) => [i * 1080 / 59, 40 + (mx - k.c) / (mx - mn) * 300]);
+  const line = 'M' + pts.map(p => p.join(',')).join(' L');
+  $('#sigLine').setAttribute('d', line); $('#sigArea').setAttribute('d', line + ' L1080,420 L0,420 Z');
+  const L = $('#sigLine').getTotalLength(); $('#sigLine').style.strokeDasharray = L;
+  tl.call(p => { $('#sigLine').style.strokeDashoffset = L * (1 - p); $('#sigArea').style.opacity = p; }, 11.9, 1.3, 'inOut');
+})();
+
+function zoneGrow(id) {
+  const g = document.getElementById(id); if (!g) return () => {};
+  const r = g.querySelector('rect'), tx = g.querySelector('text'), full = +r.getAttribute('width');
+  return p => { r.setAttribute('width', Math.max(0.01, full * p)); g.style.opacity = Math.min(1, p * 3); tx.style.opacity = M.clamp((p - .45) * 2); };
+}
+</script>
+</body>
+</html>
