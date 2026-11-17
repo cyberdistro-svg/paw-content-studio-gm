@@ -73,7 +73,7 @@ const py = process.platform === 'win32' ? 'python' : 'python3';
 const base = outMp4.replace(/\.mp4$/i, '');
 if (flag('no-audio')) { execSync(`ffmpeg -y -v error -i "${silent}" -c copy "${outMp4}"`); }
 else {
-  const ln = `loudnorm=I=${opt('lufs', -14)}:TP=-1.5:LRA=11`;
+  const ln = `loudnorm=I=${opt('lufs', -14.5)}:TP=-2:LRA=11:linear=true,alimiter=limit=0.8:level=disabled`;
   if (!userAudio) {
     const wav = base + '.sfx.wav';
     execSync(`${py} "${join(here, 'sfx.py')}" "${cuesPath}" "${wav}"`, { stdio: 'inherit' });
